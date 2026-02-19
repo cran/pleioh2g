@@ -26,9 +26,10 @@
 #'   - `percentage_h2pleio_uncorr_se` (numeric): pre-correction percentage of pleiotropic heritability jackknife s.e. estimate.
 #'   - `percentage_h2pleio_uncorr_jackknife` (numeric): vector of all pre-correction percentage of pleiotropic heritability jackknife estimates.
 #'   - `h2pleio_corr` (numeric): post-correction pleiotropic heritability estimate.
-#'   - `h2pleio_corr_se` (numeric): post-correction pleiotropic heritability jackknife s.e. estimate.
+#'   - `h2pleio_corr_se` (numeric): post-correction pleiotropic heritability estimate s.e..
 #'   - `percentage_h2pleio_corr` (numeric): post-correction percentage of pleiotropic heritability estimate.
 #'   - `percentage_h2pleio_corr_se` (numeric): post-correction percentage of pleiotropic heritability jackknife s.e. estimate.
+#'   - `percentage_h2pleio_corr_Z` (numeric): post-correction percentage of pleiotropic heritability estimate Z score.
 #'   - `corrected_weight` (numeric): corrected weight in bias correction.
 
 #' @export
@@ -40,7 +41,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
   phenotype_name<-as.character(phenotype)
   current_D<-phenotype_name[G]
   message(current_D)
-  rg_threshold<-sqrt(0.5)
+  rg_threshold<-0.5
   #Before computing pleioh2g, need rg and rg_jk_array
   results<-Cal_rg_h2g_alltraits(phenotype_name, munged_sumstats, ld_path, wld_path, sample_prev, population_prev)
   results_jk<-Cal_rg_h2g_jk_alltraits(n_block, hmp3, phenotype_name, munged_sumstats, ld_path, wld_path, sample_prev, population_prev)
@@ -57,16 +58,16 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
   Results_full_rg_array<-results_jk$rgarray
   Rg_mat_z<-results$rgz
 
-  #step 1: check D - T and D - D rg < sqrt(0.5)
-  if(!all(Results_full_rg[as.character(current_D), ]<rg_threshold)){
-    message("target disease =", as.character(current_D), "needs pruning due to large rg in the aux. matrix \nPerform first pruning...\n")
+  #step 1: check D - T
+  if(!all(Results_full_rg[as.character(current_D), -G]^2<rg_threshold)){
+    message("target disease =", as.character(current_D), "Requires pruning due to large rg in the aux. matrix \nPerform first pruning...\n")
 
     Rg_DT <- Results_full_rg[as.character(current_D), ]
-    if(length(setdiff(names(Rg_DT)[which(Rg_DT>rg_threshold)],as.character(current_D)))>0){
-      message("remove", paste0(setdiff(names(Rg_DT)[which(Rg_DT>rg_threshold)],as.character(current_D)),collapse = ","), "due to large rg with Target disease.. \n")
+    if(length(setdiff(names(Rg_DT)[which(Rg_DT^2>rg_threshold)],as.character(current_D)))>0){
+      message("remove", paste0(setdiff(names(Rg_DT)[which(Rg_DT^2>rg_threshold)],as.character(current_D)),collapse = ","), "due to large rg with target disease.. \n")
     }
 
-    Rg_DT<-Rg_DT[which(Rg_DT<rg_threshold)]
+    Rg_DT<-Rg_DT[which(Rg_DT^2<rg_threshold)]
     traitname1<-names(Rg_DT)
 
     Rg_DDT<-Results_full_rg[c(as.character(current_D),as.character(traitname1)), c(as.character(current_D),as.character(traitname1))]
@@ -88,13 +89,21 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
 
     message("target disease =", current_D, ": first pruning finished \n")
     message("target disease =", current_D, ": pre-correction h2pleio/h2:", precorrresults$percentage_h2pleio_uncorr, "; s.e. ", precorrresults$percentage_h2pleio_uncorr_se,"\n")
-    rg_threshold<-sqrt(0.5)
+    rg_threshold<-0.5
     message(" rg threshold: ",rg_threshold,"\n")
   }else{
-    phenotypename_update<-phenotype_name
-    precorrresults<-pleiotropyh2_nocor_computing_single(G,phenotypename_update,h2_vector,h2_vector_mat,Results_full_rg,Results_full_rg_array)
 
-    rg_threshold<-sqrt(0.5)
+    phenotypename_update<-c(as.character(current_D),setdiff(phenotype_name,as.character(current_D)))
+    h2_vector_update_1<-h2_vector[1,phenotypename_update]
+    h2_vector_mat_update_1<-h2_vector_mat[,phenotypename_update]
+    Results_full_rg_update_1<-Results_full_rg[phenotypename_update,phenotypename_update]
+    Results_full_rg_array_update_1<-Results_full_rg_array[phenotypename_update,phenotypename_update,]
+    target_num<-which(phenotypename_update==current_D)
+    precorrresults<-pleiotropyh2_nocor_computing_single(target_num,phenotypename_update,h2_vector_update_1,
+                                                        h2_vector_mat_update_1,Results_full_rg_update_1,Results_full_rg_array_update_1)
+
+
+    rg_threshold<-0.5
     message("target disease =", current_D, ": don't need first pruning... next \n")
     message("target disease =", current_D, ": pre-correction h2pleio/h2:", precorrresults$percentage_h2pleio_uncorr, "; s.e. ", precorrresults$percentage_h2pleio_uncorr_se,"\n")
     message("rg threshold: ",rg_threshold,"\n")
@@ -111,8 +120,8 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
 
     traitnames2_all<-rownames(Rg_DDT2)
 
-    rg_threshold <- sqrt(0.5)
-    Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), traitnames2_all, Rg_DDT2,Rg_DDT_z2, rg_threshold = sqrt(0.5))
+    rg_threshold <- 0.5
+    Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), traitnames2_all, Rg_DDT2,Rg_DDT_z2, rg_threshold = 0.5)
 
     phenotypename_update<-rownames(Rg_prune)
 
@@ -126,7 +135,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
                                                         h2_vector_mat_update_1,Results_full_rg_update_1,Results_full_rg_array_update_1)
 
     message("target disease =", current_D, ": pre-correction h2pleio/h2:", precorrresults$percentage_h2pleio_uncorr, "; s.e. ", precorrresults$percentage_h2pleio_uncorr_se,"\n")
-    rg_threshold<-sqrt(0.5)
+    rg_threshold<-0.5
     message("rg threshold: ",rg_threshold,"\n")
   }
   if(precorrresults$percentage_h2pleio_uncorr_se>0.5){
@@ -139,8 +148,8 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
 
     traitnames2_all<-rownames(Rg_DDT2)
 
-    rg_threshold <- sqrt(0.4)
-    Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), traitnames2_all, Rg_DDT2,Rg_DDT_z2, rg_threshold = sqrt(0.4))
+    rg_threshold <- 0.4
+    Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), traitnames2_all, Rg_DDT2,Rg_DDT_z2, rg_threshold = 0.4)
 
     phenotypename_update<-rownames(Rg_prune)
 
@@ -154,7 +163,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
                                                         h2_vector_mat_update_1,Results_full_rg_update_1,Results_full_rg_array_update_1)
 
     message("target disease =", current_D, ": pre-correction h2pleio/h2:", precorrresults$percentage_h2pleio_uncorr, "; s.e. ", precorrresults$percentage_h2pleio_uncorr_se,"\n")
-    rg_threshold<-sqrt(0.4)
+    rg_threshold<-0.4
     message("rg threshold: ",rg_threshold,"\n")
   }
 
@@ -168,8 +177,8 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
 
     traitnames2_all<-rownames(Rg_DDT2)
 
-    rg_threshold <- sqrt(0.3)
-    Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), traitnames2_all, Rg_DDT2,Rg_DDT_z2, rg_threshold = sqrt(0.3))
+    rg_threshold <- 0.3
+    Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), traitnames2_all, Rg_DDT2,Rg_DDT_z2, rg_threshold = 0.3)
 
     phenotypename_update<-rownames(Rg_prune)
 
@@ -182,7 +191,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
                                                         h2_vector_mat_update_1,Results_full_rg_update_1,Results_full_rg_array_update_1)
 
     message("target disease =", current_D, ": pre-correction h2pleio/h2:", precorrresults$percentage_h2pleio_uncorr, "; s.e. ", precorrresults$percentage_h2pleio_uncorr_se,"\n")
-    rg_threshold<-sqrt(0.3)
+    rg_threshold<-0.3
     message("rg threshold: ",rg_threshold,"\n")
   }
 
@@ -196,8 +205,8 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
 
     traitnames2_all<-rownames(Rg_DDT2)
 
-    rg_threshold <- sqrt(0.2)
-    Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), traitnames2_all, Rg_DDT2,Rg_DDT_z2, rg_threshold = sqrt(0.2))
+    rg_threshold <- 0.2
+    Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), traitnames2_all, Rg_DDT2,Rg_DDT_z2, rg_threshold = 0.2)
 
     phenotypename_update<-rownames(Rg_prune)
 
@@ -210,7 +219,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
                                                         h2_vector_mat_update_1,Results_full_rg_update_1,Results_full_rg_array_update_1)
 
     message("target disease =", current_D, ": pre-correction h2pleio/h2:", precorrresults$percentage_h2pleio_uncorr, "; s.e. ", precorrresults$percentage_h2pleio_uncorr_se,"\n")
-    rg_threshold<-sqrt(0.2)
+    rg_threshold<-0.2
     message("rg threshold: ",rg_threshold,"\n")
   }
 
@@ -224,8 +233,8 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
 
     traitnames2_all<-rownames(Rg_DDT2)
 
-    rg_threshold <- sqrt(0.1)
-    Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), traitnames2_all, Rg_DDT2,Rg_DDT_z2, rg_threshold = sqrt(0.1))
+    rg_threshold <- 0.1
+    Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), traitnames2_all, Rg_DDT2,Rg_DDT_z2, rg_threshold = 0.1)
 
     phenotypename_update<-rownames(Rg_prune)
 
@@ -238,7 +247,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
                                                         h2_vector_mat_update_1,Results_full_rg_update_1,Results_full_rg_array_update_1)
 
     message("target disease =", current_D, ": pre-correction h2pleio/h2:", precorrresults$percentage_h2pleio_uncorr, "; s.e. ", precorrresults$percentage_h2pleio_uncorr_se,"\n")
-    rg_threshold<-sqrt(0.1)
+    rg_threshold<-0.1
     message("rg threshold: ",rg_threshold,"\n")
   }
 
@@ -250,11 +259,12 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
   Results_full_rg_array_update_2 <- Results_full_rg_array[as.character(phenotypename_update), as.character(phenotypename_update), ]
   h2_vector_update_2 <- h2_vector[1, as.character(phenotypename_update)]
   h2_vector_mat_update_2 <- h2_vector_mat[, as.character(phenotypename_update)]
-
+  target_num<-which(phenotypename_update==current_D)
+  message("target trait index:",target_num,"\n")
 
   target_num<-which(phenotypename_update==current_D)
   tryCatch({
-    if (rg_threshold > sqrt(0.1)) {
+    if (rg_threshold > 0.1) {
       postcorrresults<-pleiotropyh2_cor_computing_single(target_num, phenotypename_update, h2_vector_update_2, h2_vector_mat_update_2,
                                         Results_full_rg_update_2, Results_full_rg_array_update_2, sample_rep)
       message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
@@ -265,19 +275,19 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
       message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
 
     }
-    message("final rg threshold: ", rg_threshold, "\n")
+    message("Final rg threshold: ", rg_threshold, "\n")
   }, error = function(e) {
     message("Target disease =", current_D, " needs further pruning. ", e$message, "\nPerform pruning...\n")
 
 
-    if (rg_threshold == sqrt(0.5)) {
-      new_rg_threshold <- sqrt(0.4)
-    } else if (rg_threshold == sqrt(0.4)) {
-      new_rg_threshold <- sqrt(0.3)
-    } else if (rg_threshold == sqrt(0.3)) {
-      new_rg_threshold <- sqrt(0.2)
-    } else if (rg_threshold == sqrt(0.2)) {
-      new_rg_threshold <- sqrt(0.1)
+    if (rg_threshold == 0.5) {
+      new_rg_threshold <- 0.4
+    } else if (rg_threshold == 0.4) {
+      new_rg_threshold <- 0.3
+    } else if (rg_threshold == 0.3) {
+      new_rg_threshold <- 0.2
+    } else if (rg_threshold == 0.2) {
+      new_rg_threshold <- 0.1
     }
 
     tryCatch({
@@ -308,7 +318,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
       if(precorrresults$percentage_h2pleio_uncorr_se>0.5){
         stop(message("target disease =", current_D, "jackknife s.e. is too large (more than 0.5) - need to prune..."))
       }
-      if (new_rg_threshold == sqrt(0.1)) {
+      if (new_rg_threshold == 0.1) {
         postcorrresults<-pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                                 Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
         message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
@@ -323,12 +333,12 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
       message("final rg threshold: ", rg_threshold, "\n")
 
     }, error = function(e) {
-      if (rg_threshold == sqrt(0.4)) {
-        new_rg_threshold <- sqrt(0.3)
-      } else if (rg_threshold == sqrt(0.3)) {
-        new_rg_threshold <- sqrt(0.2)
-      } else if (rg_threshold == sqrt(0.2)) {
-        new_rg_threshold <- sqrt(0.1)
+      if (rg_threshold == 0.4) {
+        new_rg_threshold <- 0.3
+      } else if (rg_threshold == 0.3) {
+        new_rg_threshold <- 0.2
+      } else if (rg_threshold == 0.2) {
+        new_rg_threshold <- 0.1
       }
       tryCatch({
         traitname_3 <- setdiff(phenotypename_update, as.character(current_D))
@@ -357,7 +367,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
         if(precorrresults$percentage_h2pleio_uncorr_se>0.5){
           stop(message("target disease =", current_D, "jackknife s.e. is too large (more than 0.5) - need to prune..."))
         }
-        if (new_rg_threshold == sqrt(0.1)) {
+        if (new_rg_threshold == 0.1) {
           postcorrresults<-pleiotropyh2_cor_computing_single_prune(target_num, phenotype_path_update, h2_vector_update_3, h2_vector_mat_update_3,
                                                   Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
           message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
@@ -369,12 +379,12 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
 
         }
 
-        message("final rg threshold: ", rg_threshold, "\n")
+        message("Final rg threshold: ", rg_threshold, "\n")
       }, error = function(e) {
-        if (rg_threshold == sqrt(0.3)) {
-          new_rg_threshold <- sqrt(0.2)
-        } else if (rg_threshold == sqrt(0.2)) {
-          new_rg_threshold <- sqrt(0.1)
+        if (rg_threshold == 0.3) {
+          new_rg_threshold <- 0.2
+        } else if (rg_threshold == 0.2) {
+          new_rg_threshold <- 0.1
         }
        tryCatch({
           traitname_3 <- setdiff(phenotypename_update, as.character(current_D))
@@ -403,7 +413,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
           if(precorrresults$percentage_h2pleio_uncorr_se>0.5){
             stop(message("target disease =", current_D, "jackknife s.e. is too large (more than 0.5) - need to prune..."))
           }
-          if (new_rg_threshold == sqrt(0.1)) {
+          if (new_rg_threshold == 0.1) {
             postcorrresults<-pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                                     Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
             message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
@@ -415,9 +425,9 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
 
           }
 
-          message("final rg threshold: ", rg_threshold, "\n")
+          message("Final rg threshold: ", rg_threshold, "\n")
         }, error = function(e) {
-          message("further+ pruning for", current_D, ":", e$message, "\n")
+          message("Further+ pruning for", current_D, ":", e$message, "\n")
           traitname_3 <- setdiff(phenotypename_update, as.character(current_D))
 
           Rg_DDT3<-Results_full_rg[c(as.character(current_D),as.character(traitname_3)), c(as.character(current_D),as.character(traitname_3))]
@@ -425,7 +435,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
 
           traitnames3_all<-rownames(Rg_DDT3)
 
-          Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), as.character(traitnames3_all), Rg_DDT3,Rg_DDT_z3, rg_threshold = sqrt(0.1))
+          Rg_prune <- Prune_disease_selection_DTrgzscore(as.character(current_D), as.character(traitnames3_all), Rg_DDT3,Rg_DDT_z3, rg_threshold = 0.1)
 
           phenotypename_update<-rownames(Rg_prune)
 
@@ -440,11 +450,11 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
           message("target disease =", current_D, ": pre-correction h2pleio/h2:", precorrresults$percentage_h2pleio_uncorr, "; s.e. ", precorrresults$percentage_h2pleio_uncorr_se,"\n")
 
           target_num <- which(phenotypename_update == current_D)
-          rg_threshold <- sqrt(0.1)
+          rg_threshold <- 0.1
 
           postcorrresults<-pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                                   Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
-          message("final rg threshold: ", rg_threshold, "\n")
+          message("Final rg threshold: ", rg_threshold, "\n")
           message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
 
         })

@@ -16,12 +16,16 @@
 #' @export
 #'
 #' @examples
-#' data(Results_full_rg_15D)
-#' data(Results_full_rg_array_15D)
+#' \donttest{
+#' data(Results_full_rg)
+#' data(Results_full_rg_array)
+#' Results_full_rg<-Results_full_rg[1:15,1:15]
+#' Results_full_rg_array<-Results_full_rg_array[1:15,1:15,]
 #' plei_h2_idx<-1
 #' ratio_a <- 0.75
-#' generate_proposal_sample_changea_cor(Results_full_rg_15D,
-#'  Results_full_rg_array_15D, plei_h2_idx, ratio_a)
+#' generate_proposal_sample_changea_cor(Results_full_rg,
+#'  Results_full_rg_array, plei_h2_idx, ratio_a)
+#'}
 
 generate_proposal_sample_changea_cor <- function(Results_full_rg, Results_full_rg_array, plei_h2_idx, ratio_a) {
   n = nrow(Results_full_rg)
@@ -43,7 +47,7 @@ generate_proposal_sample_changea_cor <- function(Results_full_rg, Results_full_r
     upper_triangle_noise_matrix <- t(lower_noise_matrix)
     noisy_matrix<-lower_noise_matrix + upper_triangle_noise_matrix
     sample_rg_noise <- Results_full_rg + noisy_matrix
-    if (iter > 50) {
+    if (iter > 201) {
 
       return(NA)
       break

@@ -2,7 +2,7 @@ Package: pleioh2g
 Type: Package
 Title: Estimation of Pleiotropic Heritability from Genome-Wide
         Association Studies (GWAS) Summary Statistics
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: 
     c(
       person(given = "Yujie", family = "Zhao",
@@ -22,8 +22,8 @@ Config/testthat/edition: 3
 VignetteBuilder: knitr
 Language: en-US
 NeedsCompilation: no
-Packaged: 2025-10-26 14:46:50 UTC; yujiezhao
+Packaged: 2026-02-19 14:35:57 UTC; yujiezhao
 Author: Yujie Zhao [aut, cre]
 Maintainer: Yujie Zhao <yujiezhao@hsph.harvard.edu>
 Repository: CRAN
-Date/Publication: 2025-10-28 09:50:02 UTC
+Date/Publication: 2026-02-19 14:50:02 UTC

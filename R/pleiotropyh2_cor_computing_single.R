@@ -27,9 +27,10 @@
 #'   - `percentage_h2pleio_uncorr_se` (numeric): pre-correction percentage of pleiotropic heritability jackknife s.e. estimate.
 #'   - `percentage_h2pleio_uncorr_jackknife` (numeric): vector of all pre-correction percentage of pleiotropic heritability jackknife estimates.
 #'   - `h2pleio_corr` (numeric): post-correction pleiotropic heritability estimate.
-#'   - `h2pleio_corr_se` (numeric): post-correction pleiotropic heritability jackknife s.e. estimate.
+#'   - `h2pleio_corr_se` (numeric): post-correction pleiotropic heritability estimate s.e..
 #'   - `percentage_h2pleio_corr` (numeric): post-correction percentage of pleiotropic heritability estimate.
 #'   - `percentage_h2pleio_corr_se` (numeric): post-correction percentage of pleiotropic heritability jackknife s.e. estimate.
+#'   - `percentage_h2pleio_corr_Z` (numeric): post-correction percentage of pleiotropic heritability estimate Z score.
 #'   - `corrected_weight` (numeric): corrected weight in bias correction.
 #'
 #'
@@ -38,16 +39,20 @@
 #' @examples
 #' \donttest{
 #' G <- 1
-#' data(Results_full_rg_15D)
-#' data(Results_full_rg_array_15D)
-#' data(h2_vector_15D)
-#' data(h2_vector_mat_15D)
+#' data(Results_full_rg)
+#' data(Results_full_rg_array)
+#' data(h2_vector)
+#' data(h2_vector_mat)
+#' Results_full_rg<-Results_full_rg[1:15,1:15]
+#' Results_full_rg_array<-Results_full_rg_array[1:15,1:15,]
+#' h2_vector<-t(as.matrix(h2_vector[1,1:15]))
+#' h2_vector_mat<-h2_vector_mat[,1:15]
 #' phenotype<-c("401.1","244.5","318","735.3","411.4",
 #' "427.2","454.1","278.1","250.2","550.1","530.11",
 #' "296.22","519.8","562.1","763")
 #' sample_rep<-20
-#' post_corrrresults_prune<-pleiotropyh2_cor_computing_single(G,phenotype,h2_vector_15D,
-#' h2_vector_mat_15D,Results_full_rg_15D,Results_full_rg_array_15D, sample_rep)
+#' post_corrrresults_prune<-pleiotropyh2_cor_computing_single(G,phenotype,h2_vector,
+#' h2_vector_mat,Results_full_rg,Results_full_rg_array, sample_rep)
 #'}
 pleiotropyh2_cor_computing_single<-function(G,phenotype,h2_vector,h2_vector_mat,Results_full_rg,Results_full_rg_array,sample_rep){
 
@@ -105,6 +110,12 @@ pleiotropyh2_cor_computing_single<-function(G,phenotype,h2_vector,h2_vector_mat,
   ####correct
   true_pleio_cor_test <- Cal_cor_test_single(Results_full_rg,targetnum)
 
+  if(h2pleiotropy_sum_percentage_allgenome==true_pleio_cor_test){
+    print("After check: truth = estimation")
+  }else{
+    print("error!")
+  }
+
   corg2dg1_mat<-matrix(0,nrow = n_trait,ncol = n_trait-1)
   lower_bound <- matrix(0,nrow = n_trait,ncol = n_trait-1)
   upper_bound <- matrix(0,nrow = n_trait,ncol = n_trait-1)
@@ -122,13 +133,13 @@ pleiotropyh2_cor_computing_single<-function(G,phenotype,h2_vector,h2_vector_mat,
 
 
   sample_pleio_cor <- matrix(NA, nrow = sample_rep, ncol = 1)
-
+  set.seed(123)
   print("Start computing initial value...")
   for(sample_id in 1:sample_rep){
-    print(sample_id)
-    sample_pleio_cor[sample_id,1]  <- generate_proposal_sample_changea_cor(Results_full_rg,Results_full_rg_array,G, 1)
+    # print(sample_id)
+    sample_pleio_cor[sample_id,1]  <- generate_proposal_sample_changea_cor(Results_full_rg,Results_full_rg_array,targetnum, 1)
     if(is.na(sample_pleio_cor[sample_id,1])){
-      warning("warning: Computation took more than 50 iterations to sample a non-singular matrix. Stopping execution. Need pruning")
+      warning("Warning: Computation took more than 200 iterations to sample a non-singular matrix. Stopping execution. Require further pruning..")
       break
     }
   }
@@ -138,18 +149,23 @@ pleiotropyh2_cor_computing_single<-function(G,phenotype,h2_vector,h2_vector_mat,
   }
 
   mean_est_a_single <- apply(sample_pleio_cor, 2, function(x) mean(x, na.rm = T))
+  sd_est_a_single <- apply(sample_pleio_cor, 2, function(x) sd(x, na.rm = T))
 
-  print("finish computing initial value...")
+  print("Finish computing initial value...")
 
   t=1
 
   mean_est_a_single_draw<-vector()
   mean_est_a_single_draw<-c(mean_est_a_single_draw,mean_est_a_single)
+  sd_est_a_single_draw<-vector()
+  sd_est_a_single_draw<-c(sd_est_a_single_draw,sd_est_a_single)
   ratio_a_vector<-vector()
   ratio_a_vector<-c(ratio_a_vector,1)
-  print(paste0("mean_estimate: ",as.numeric(mean_est_a_single)))
-  print(paste0("observed_true_estimate: ",as.numeric(true_pleio_cor_test)))
-  print(paste0("corrected_weight: ",1))
+  print(paste0("mean estimate across MC samples: ",as.numeric(mean_est_a_single)))
+  print(paste0("sd across MC samples: ",as.numeric(sd_est_a_single)))
+  print(paste0("observed true estimate: ",as.numeric(true_pleio_cor_test)))
+  print(paste0("observed true estimate jackknife s.e.: ",as.numeric(h2pleiotropy_percentage_jkse)))
+  print(paste0("corrected weight: ",1))
   print(paste0("difference: ",as.numeric(abs(mean_est_a_single-true_pleio_cor_test)/true_pleio_cor_test)))
   print("Start binary search...")
 
@@ -163,12 +179,14 @@ pleiotropyh2_cor_computing_single<-function(G,phenotype,h2_vector,h2_vector_mat,
       ratio_a<-(a_diseases/corg2dg1)[1]
 
       sample_pleio_a_test <- matrix(NA, nrow = sample_rep, ncol = 1)
-
+      set.seed(123)
       for(sample_id in 1:sample_rep){
-        sample_pleio_a_test[sample_id,1]  <- generate_proposal_sample_changea_cor(Results_full_rg,Results_full_rg_array,G, ratio_a)
+        sample_pleio_a_test[sample_id,1]  <- generate_proposal_sample_changea_cor(Results_full_rg,Results_full_rg_array,targetnum, ratio_a)
       }
       mean_est_a_single <- apply(sample_pleio_a_test, 2, function(x) mean(x, na.rm = T))
       mean_est_a_single_draw<-c(mean_est_a_single_draw,mean_est_a_single)
+      sd_est_a_single <- apply(sample_pleio_a_test, 2, function(x) sd(x, na.rm = T))
+      sd_est_a_single_draw<-c(sd_est_a_single_draw,sd_est_a_single)
       ratio_a_vector<-c(ratio_a_vector,ratio_a)
     }else{
       upper_bound_single <- a_diseases
@@ -176,21 +194,26 @@ pleiotropyh2_cor_computing_single<-function(G,phenotype,h2_vector,h2_vector_mat,
       ratio_a<-(a_diseases/corg2dg1)[1]
 
       sample_pleio_a_test <- matrix(NA, nrow = sample_rep, ncol = 1)
-
+      set.seed(123)
       for(sample_id in 1:sample_rep){
-        sample_pleio_a_test[sample_id,1]  <- generate_proposal_sample_changea_cor(Results_full_rg,Results_full_rg_array,G, ratio_a)
+        sample_pleio_a_test[sample_id,1]  <- generate_proposal_sample_changea_cor(Results_full_rg,Results_full_rg_array,targetnum, ratio_a)
       }
       mean_est_a_single <- apply(sample_pleio_a_test, 2, function(x) mean(x, na.rm = T))
       mean_est_a_single_draw<-c(mean_est_a_single_draw,mean_est_a_single)
+      sd_est_a_single <- apply(sample_pleio_a_test, 2, function(x) sd(x, na.rm = T))
+      sd_est_a_single_draw<-c(sd_est_a_single_draw,sd_est_a_single)
       ratio_a_vector<-c(ratio_a_vector,ratio_a)
     }
 
-    print(paste0("mean_estimate: ",as.numeric(mean_est_a_single)))
-    print(paste0("observed_true_estimate: ",as.numeric(true_pleio_cor_test)))
-    print(paste0("corrected_weight: ",as.numeric(ratio_a)))
+    print(paste0("mean estimate across MC samples: ",as.numeric(mean_est_a_single)))
+    print(paste0("sd across MC samples: ",as.numeric(sd_est_a_single)))
+    print(paste0("observed true estimate: ",as.numeric(true_pleio_cor_test)))
+    print(paste0("observed true estimate jackknife s.e.: ",as.numeric(h2pleiotropy_percentage_jkse)))
+    print(paste0("corrected weight: ",as.numeric(ratio_a)))
     print(paste0("difference: ",as.numeric(abs(mean_est_a_single-true_pleio_cor_test)/true_pleio_cor_test)))
-    if(as.numeric(ratio_a)<0.5){
-      stop("Need pruning as rg threshold (0.5) causes too small corrected weights: Function execution stopped.")
+
+     if(as.numeric(ratio_a)<0.5){
+      stop("Require further pruning because rg threshold (0.5) causes too small corrected weights: Function execution stopped.")
     }
     if(abs(mean_est_a_single-true_pleio_cor_test)/true_pleio_cor_test<0.05){
       break
@@ -205,9 +228,13 @@ pleiotropyh2_cor_computing_single<-function(G,phenotype,h2_vector,h2_vector_mat,
   true_pleio_h2_correct_percentage<-true_pleio_h2_correct/h2total_target_allgenome
 
   Results_collection_category$h2pleio_corr<-true_pleio_h2_correct
-  Results_collection_category$h2pleio_corr_se<-Results_collection_category$h2pleio_uncorr_se*true_pleio_h2_correct/Results_collection_category$h2pleio_uncorr
+  post_se<-sd_est_a_single/sd_est_a_single_draw[1]*h2pleiotropy_percentage_jkse
+  Results_collection_category$h2pleio_corr_se<-post_se*h2total_target_allgenome
+
   Results_collection_category$percentage_h2pleio_corr<-true_pleio_h2_correct_percentage
-  Results_collection_category$percentage_h2pleio_corr_se<-Results_collection_category$percentage_h2pleio_uncorr_se*true_pleio_h2_correct_percentage/Results_collection_category$percentage_h2pleio_uncorr
+  Results_collection_category$percentage_h2pleio_corr_se<-sd_est_a_single/sd_est_a_single_draw[1]*h2pleiotropy_percentage_jkse
+  Results_collection_category$percentage_h2pleio_corr_Z<-Results_collection_category$percentage_h2pleio_corr/Results_collection_category$percentage_h2pleio_corr_se
+
   Results_collection_category$corrected_weight<-corrected_weightd
 
   return(Results_collection_category)

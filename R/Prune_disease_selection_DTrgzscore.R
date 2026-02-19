@@ -18,12 +18,14 @@
 #' trait_name<-c("401.1","244.5","318","735.3","411.4",
 #' "427.2","454.1","278.1","250.2","550.1","530.11",
 #' "296.22","519.8","562.1","763")
-#' data("Results_full_rg_15D")
-#' data("Rg_mat_z_15D")
+#' data("Results_full_rg")
+#' data("Rg_mat_z")
+#' Results_full_rg<-Results_full_rg[1:15,1:15]
+#' Rg_mat_z<-Rg_mat_z[1:15,1:15]
 #' Target_disease<-'401.1'
-#' rg_threshold<-sqrt(0.3)
+#' rg_threshold<-0.3
 #' Rg_prune<-Prune_disease_selection_DTrgzscore(Target_disease, trait_name,
-#' Results_full_rg_15D,Rg_mat_z_15D,rg_threshold)
+#' Results_full_rg,Rg_mat_z,rg_threshold)
 #'
 Prune_disease_selection_DTrgzscore<-function(Target_disease,trait_name,Rg_mat,Rg_mat_z,rg_threshold){
   ##select aux. exp. T
@@ -34,7 +36,7 @@ Prune_disease_selection_DTrgzscore<-function(Target_disease,trait_name,Rg_mat,Rg
   Rg_mat_z_DT<-Rg_mat_z[Target_disease,as.character(trait_name)]
 
   #Pruning based on genetic correction
-  indices <- which((Rg_mat_DD > rg_threshold) & lower.tri(Rg_mat_DD), arr.ind = TRUE)
+  indices <- which((Rg_mat_DD^2 > rg_threshold) & lower.tri(Rg_mat_DD), arr.ind = TRUE)
   result <- apply(indices, 1, function(idx) {
     paste0("(", rownames(Rg_mat_DD)[idx[1]], ", ", colnames(Rg_mat_DD)[idx[2]], ")")
   })

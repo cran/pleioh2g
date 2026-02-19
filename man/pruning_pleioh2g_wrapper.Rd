@@ -50,9 +50,10 @@ A `list` containing the following elements:
   - `percentage_h2pleio_uncorr_se` (numeric): pre-correction percentage of pleiotropic heritability jackknife s.e. estimate.
   - `percentage_h2pleio_uncorr_jackknife` (numeric): vector of all pre-correction percentage of pleiotropic heritability jackknife estimates.
   - `h2pleio_corr` (numeric): post-correction pleiotropic heritability estimate.
-  - `h2pleio_corr_se` (numeric): post-correction pleiotropic heritability jackknife s.e. estimate.
+  - `h2pleio_corr_se` (numeric): post-correction pleiotropic heritability estimate s.e..
   - `percentage_h2pleio_corr` (numeric): post-correction percentage of pleiotropic heritability estimate.
   - `percentage_h2pleio_corr_se` (numeric): post-correction percentage of pleiotropic heritability jackknife s.e. estimate.
+  - `percentage_h2pleio_corr_Z` (numeric): post-correction percentage of pleiotropic heritability estimate Z score.
   - `corrected_weight` (numeric): corrected weight in bias correction.
 }
 \description{

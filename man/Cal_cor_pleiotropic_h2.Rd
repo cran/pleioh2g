@@ -20,7 +20,7 @@ Compute a vector of pleioh2g for all diseases before correction
 This function computes pleioh2g for all diseases before correction in one go.
 }
 \examples{
-data(Results_full_rg_15D)
-data(h2_vector_15D)
-Cal_cor_pleiotropic_h2(Results_full_rg_15D,h2_vector_15D)
+data(Results_full_rg)
+data(h2_vector)
+Cal_cor_pleiotropic_h2(Results_full_rg,h2_vector)
 }

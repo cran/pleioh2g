@@ -1,5 +1,5 @@
-#' Jackknife array of genetic correlations (15 diseases)
+#' Jackknife array of genetic correlations (62 traits)
 #'
 #' @format A 3-dim array.
 #' @source Internal simulation
-"Results_full_rg_array_15D"
+"Results_full_rg_array"

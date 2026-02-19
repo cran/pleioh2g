@@ -20,9 +20,9 @@ pleioh2g value for the target disease before correction
 This function computes pleioh2g for the target disease before correction.
 }
 \examples{
-data(Results_full_rg_15D)
-data(h2_vector_15D)
+data(Results_full_rg)
+data(h2_vector)
 plei_h2_idx<-1
-h2g_T_single<-h2_vector_15D[plei_h2_idx]
-Cal_cor_pleiotropic_h2_single(Results_full_rg_15D,h2g_T_single,plei_h2_idx)
+h2g_T_single<-h2_vector[plei_h2_idx]
+Cal_cor_pleiotropic_h2_single(Results_full_rg,h2g_T_single,plei_h2_idx)
 }

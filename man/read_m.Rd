@@ -7,7 +7,7 @@
 read_m(ld)
 }
 \arguments{
-\item{ld}{(character) Path to directory containing ld score files, ending in `*.l2.ldscore.gz`. Default is `NA`, which will utilize the built-in ld score files from Pan-UK Biobank for the ancestry specified in `ancestry`.}
+\item{ld}{(character) Path to directory containing ld score files, ending in `*.l2.ldscore.gz`.}
 }
 \value{
 A data frame (tibble) containing SNP counts read from the specified M files.

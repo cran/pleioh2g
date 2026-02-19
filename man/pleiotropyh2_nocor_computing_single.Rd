@@ -43,14 +43,18 @@ This function is used to compute pleioh2g after bias correction for target disea
 }
 \examples{
 G <- 1
-data(Results_full_rg_15D)
-data(Results_full_rg_array_15D)
-data(h2_vector_15D)
-data(h2_vector_mat_15D)
+data(Results_full_rg)
+data(Results_full_rg_array)
+data(h2_vector)
+data(h2_vector_mat)
+Results_full_rg<-Results_full_rg[1:15,1:15]
+Results_full_rg_array<-Results_full_rg_array[1:15,1:15,]
+h2_vector<-t(as.matrix(h2_vector[1,1:15]))
+h2_vector_mat<-h2_vector_mat[,1:15]
 phenotype<-c("401.1","244.5","318","735.3","411.4",
 "427.2","454.1","278.1","250.2","550.1","530.11",
 "296.22","519.8","562.1","763")
-h2pleiobeforecorr<-pleiotropyh2_nocor_computing_single(G,phenotype,h2_vector_15D,
-h2_vector_mat_15D,Results_full_rg_15D,Results_full_rg_array_15D)
+h2pleiobeforecorr<-pleiotropyh2_nocor_computing_single(G,phenotype,h2_vector,
+h2_vector_mat,Results_full_rg,Results_full_rg_array)
 
 }

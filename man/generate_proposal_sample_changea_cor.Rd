@@ -27,10 +27,14 @@ noisy_inversed_element for bias correction
 This function is used to generate samples based on sampling covariance matrix and rg matrix for target disease
 }
 \examples{
-data(Results_full_rg_15D)
-data(Results_full_rg_array_15D)
+\donttest{
+data(Results_full_rg)
+data(Results_full_rg_array)
+Results_full_rg<-Results_full_rg[1:15,1:15]
+Results_full_rg_array<-Results_full_rg_array[1:15,1:15,]
 plei_h2_idx<-1
 ratio_a <- 0.75
-generate_proposal_sample_changea_cor(Results_full_rg_15D,
- Results_full_rg_array_15D, plei_h2_idx, ratio_a)
+generate_proposal_sample_changea_cor(Results_full_rg,
+ Results_full_rg_array, plei_h2_idx, ratio_a)
+}
 }

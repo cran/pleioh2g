@@ -9,9 +9,9 @@
 #' @export
 #'
 #' @examples
-#' data(Results_full_rg_15D)
+#' data(Results_full_rg)
 #' plei_h2_idx<-1
-#' Cal_cor_test_single(Results_full_rg_15D,plei_h2_idx)
+#' Cal_cor_test_single(Results_full_rg,plei_h2_idx)
 
 Cal_cor_test_single <- function(rg_mat,plei_h2_idx){
   n <- dim(rg_mat)[1]
