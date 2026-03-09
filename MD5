@@ -1,4 +1,4 @@
-82ed048ca04055ddd53ed0fdcb8e3a07 *DESCRIPTION
+1895cdeac5228d910f7e956d4e7cfe29 *DESCRIPTION
 238c28cf5fdbbb0b09d6353f4e647de3 *NAMESPACE
 b791c3d7c589fb067a34c9696f06d2b2 *R/Cal_cor_pleiotropic_h2.R
 6ec5943d6a0c9d56c605eb85bd6a250e *R/Cal_cor_pleiotropic_h2_corrected_single.R
@@ -19,7 +19,7 @@ c61cd956ee5770c0fb0f80545061f08b *R/make_weights.R
 91a90cd45569539a6781106ae2dd489e *R/pleiotropyh2_cor_computing_single.R
 2496c4ad327fd46095ad29a0e9759778 *R/pleiotropyh2_cor_computing_single_prune.R
 3673f4198caa5544fc0efa44e8873759 *R/pleiotropyh2_nocor_computing_single.R
-d2e74871510fa2c650ebfe88170f9f02 *R/pruning_pleioh2g_wrapper.R
+68b9ff038104c599aaa96acb26a96891 *R/pruning_pleioh2g_wrapper.R
 04031005a2938047c35b9a67d91b256b *R/read_ld.R
 7e3c7ec69dcede6cf6921144edac1e6e *R/read_m.R
 3e279aef5fbc2f36ed76cdbe4d40ec87 *R/read_sumstats.R

@@ -357,23 +357,24 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
         h2_vector_update_3 <- h2_vector[1, as.character(phenotypename_update)]
         h2_vector_mat_update_3 <- h2_vector_mat[, as.character(phenotypename_update)]
 
+        target_num <- which(phenotypename_update == current_D)
         precorrresults<-pleiotropyh2_nocor_computing_single(target_num,phenotypename_update,h2_vector_update_3,
                                                             h2_vector_mat_update_3,Results_full_rg_update_3,Results_full_rg_array_update_3)
 
         message("target disease =", current_D, ": pre-correction h2pleio/h2:", precorrresults$percentage_h2pleio_uncorr, "; s.e. ", precorrresults$percentage_h2pleio_uncorr_se,"\n")
 
-        target_num <- which(phenotypename_update == current_D)
+
         rg_threshold <- new_rg_threshold
         if(precorrresults$percentage_h2pleio_uncorr_se>0.5){
           stop(message("target disease =", current_D, "jackknife s.e. is too large (more than 0.5) - need to prune..."))
         }
         if (new_rg_threshold == 0.1) {
-          postcorrresults<-pleiotropyh2_cor_computing_single_prune(target_num, phenotype_path_update, h2_vector_update_3, h2_vector_mat_update_3,
+          postcorrresults<-pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                                   Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
           message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
 
         } else {
-          postcorrresults<-pleiotropyh2_cor_computing_single(target_num, phenotype_path_update, h2_vector_update_3, h2_vector_mat_update_3,
+          postcorrresults<-pleiotropyh2_cor_computing_single(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                             Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
           message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
 
@@ -402,13 +403,12 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
           Results_full_rg_array_update_3 <- Results_full_rg_array[as.character(phenotypename_update), as.character(phenotypename_update), ]
           h2_vector_update_3 <- h2_vector[1, as.character(phenotypename_update)]
           h2_vector_mat_update_3 <- h2_vector_mat[, as.character(phenotypename_update)]
-
+          target_num <- which(phenotypename_update == current_D)
           precorrresults<-pleiotropyh2_nocor_computing_single(target_num,phenotypename_update,h2_vector_update_3,
                                                               h2_vector_mat_update_3,Results_full_rg_update_3,Results_full_rg_array_update_3)
 
           message("target disease =", current_D, ": pre-correction h2pleio/h2: ", precorrresults$percentage_h2pleio_uncorr, "; s.e. ", precorrresults$percentage_h2pleio_uncorr_se,"\n")
 
-          target_num <- which(phenotypename_update == current_D)
           rg_threshold <- new_rg_threshold
           if(precorrresults$percentage_h2pleio_uncorr_se>0.5){
             stop(message("target disease =", current_D, "jackknife s.e. is too large (more than 0.5) - need to prune..."))
@@ -443,13 +443,12 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
           Results_full_rg_array_update_3 <- Results_full_rg_array[as.character(phenotypename_update), as.character(phenotypename_update), ]
           h2_vector_update_3 <- h2_vector[1, as.character(phenotypename_update)]
           h2_vector_mat_update_3 <- h2_vector_mat[, as.character(phenotypename_update)]
-
+          target_num <- which(phenotypename_update == current_D)
           precorrresults<-pleiotropyh2_nocor_computing_single(target_num,phenotypename_update,h2_vector_update_3,
                                                               h2_vector_mat_update_3,Results_full_rg_update_3,Results_full_rg_array_update_3)
 
           message("target disease =", current_D, ": pre-correction h2pleio/h2:", precorrresults$percentage_h2pleio_uncorr, "; s.e. ", precorrresults$percentage_h2pleio_uncorr_se,"\n")
 
-          target_num <- which(phenotypename_update == current_D)
           rg_threshold <- 0.1
 
           postcorrresults<-pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
