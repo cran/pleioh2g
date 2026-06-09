@@ -48,7 +48,11 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
 
   Results_full_rg<-results$rg
   # if input of prev is null, set default NA
-  if (!is.null(sample_prev)&!is.null(population_prev)) {
+  has_prev <- !is.null(sample_prev) &&
+    !is.null(population_prev) &&
+    !all(is.na(sample_prev)) &&
+    !all(is.na(population_prev))
+  if (has_prev) {
     h2_vector<-results$liah2
     h2_vector_mat<-results_jk$liah2array
   }else{
@@ -263,6 +267,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
   message("target trait index:",target_num,"\n")
 
   target_num<-which(phenotypename_update==current_D)
+  postcorrresults <- NULL
   tryCatch({
     if (rg_threshold > 0.1) {
       postcorrresults<-pleiotropyh2_cor_computing_single(target_num, phenotypename_update, h2_vector_update_2, h2_vector_mat_update_2,
@@ -319,12 +324,12 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
         stop(message("target disease =", current_D, "jackknife s.e. is too large (more than 0.5) - need to prune..."))
       }
       if (new_rg_threshold == 0.1) {
-        postcorrresults<-pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
+        postcorrresults <<- pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                                 Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
         message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
 
       } else {
-        postcorrresults<-pleiotropyh2_cor_computing_single(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
+        postcorrresults <<- pleiotropyh2_cor_computing_single(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                           Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
         message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
 
@@ -369,12 +374,12 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
           stop(message("target disease =", current_D, "jackknife s.e. is too large (more than 0.5) - need to prune..."))
         }
         if (new_rg_threshold == 0.1) {
-          postcorrresults<-pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
+          postcorrresults <<- pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                                   Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
           message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
 
         } else {
-          postcorrresults<-pleiotropyh2_cor_computing_single(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
+          postcorrresults <<- pleiotropyh2_cor_computing_single(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                             Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
           message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
 
@@ -414,12 +419,12 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
             stop(message("target disease =", current_D, "jackknife s.e. is too large (more than 0.5) - need to prune..."))
           }
           if (new_rg_threshold == 0.1) {
-            postcorrresults<-pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
+            postcorrresults <<- pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                                     Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
             message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
 
           } else {
-            postcorrresults<-pleiotropyh2_cor_computing_single(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
+            postcorrresults <<- pleiotropyh2_cor_computing_single(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                               Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
             message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
 
@@ -451,7 +456,7 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
 
           rg_threshold <- 0.1
 
-          postcorrresults<-pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
+          postcorrresults <<- pleiotropyh2_cor_computing_single_prune(target_num, phenotypename_update, h2_vector_update_3, h2_vector_mat_update_3,
                                                   Results_full_rg_update_3, Results_full_rg_array_update_3, sample_rep)
           message("Final rg threshold: ", rg_threshold, "\n")
           message("target disease =", current_D, ": ","post-correction h2pleio/h2 is ", postcorrresults$percentage_h2pleio_corr," ;s.e. ",postcorrresults$percentage_h2pleio_corr_se )
@@ -460,6 +465,10 @@ pruning_pleioh2g_wrapper<-function(G,phenotype,munged_sumstats,ld_path, wld_path
       })
     })
   })
+
+  if (is.null(postcorrresults)) {
+    stop("Bias correction finished without a returned result. Check pruning/correction logs for the target disease: ", current_D)
+  }
 
   return(postcorrresults)
 }

@@ -162,10 +162,15 @@ ldsc_rg <- function(munged_sumstats, sample_prev = NA, population_prev = NA, ld,
         ratio <- (analysis_res$intercept - 1) / (mean.Chi - 1)
         ratio.se <- analysis_res$intercept.se / (mean.Chi - 1)
 
-        if (is.na(population_prev) == F & is.na(sample_prev) == F) {
+        has_prev <- length(pop.prev) == 1 &&
+          length(samp.prev) == 1 &&
+          !is.na(pop.prev) &&
+          !is.na(samp.prev)
+
+        if (has_prev) {
           # conversion.factor <- (population_prev^2 * (1 - population_prev)^2) / (sample_prev * (1 - sample_prev) * dnorm(qnorm(1 - population_prev))^2)
           # Liab.S <- conversion.factor
-          h2_lia <- h2_liability(h2 = analysis_res$reg.tot, sample_prev, population_prev)
+          h2_lia <- h2_liability(h2 = analysis_res$reg.tot, samp.prev, pop.prev)
 
           h2_res <- h2_res %>%
             dplyr::bind_rows(

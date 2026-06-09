@@ -55,13 +55,14 @@ Cal_rg_h2g_jk_alltraits <- function(n_block = 200, hmp3, phenotype, munged_sumst
   if (is.null(population_prev)) {
     population_prev<-NA
   }
+  has_prev <- !all(is.na(sample_prev)) && !all(is.na(population_prev))
 
   # create saved gcorr matrix and h2g matrix
   Results_full_h2_array<-matrix(0,nrow = n_block,ncol = length(target_phenotypes))
   rownames(Results_full_h2_array)<-paste0("block_",c(1:n_block))
   colnames(Results_full_h2_array)<-target_phenotypes
 
-  if (!is.null(sample_prev) && !is.null(population_prev)) {
+  if (has_prev) {
     Results_full_h2_lia_array<-matrix(0,nrow = n_block,ncol = length(target_phenotypes))
     rownames(Results_full_h2_lia_array)<-paste0("block_",c(1:n_block))
     colnames(Results_full_h2_lia_array)<-target_phenotypes
@@ -100,6 +101,8 @@ Cal_rg_h2g_jk_alltraits <- function(n_block = 200, hmp3, phenotype, munged_sumst
         GWAS_remainblocks,
         paste0("GWAS_", target_phenotypes, "_remainblock")
       ),
+      sample_prev = sample_prev,
+      population_prev = population_prev,
       ld = ld_path,
       wld = wld_path,
       n_blocks = 200,
@@ -128,7 +131,7 @@ Cal_rg_h2g_jk_alltraits <- function(n_block = 200, hmp3, phenotype, munged_sumst
     colnames(Results_full_gcov)<-target_phenotypes
 
 
-    if (!is.null(sample_prev) && !is.null(population_prev)) {
+    if (has_prev) {
       Results_full_h2_lia<-matrix(0,nrow = 1,ncol = length(target_phenotypes))
       colnames(Results_full_h2_lia)<-target_phenotypes
       for(pheno in c(1:length(target_phenotypes))){
@@ -139,7 +142,7 @@ Cal_rg_h2g_jk_alltraits <- function(n_block = 200, hmp3, phenotype, munged_sumst
 
     Results_full_h2_array[block,]<-Results_full_h2
 
-    if (!is.null(sample_prev) && !is.null(population_prev)) {
+    if (has_prev) {
       Results_full_h2_lia_array[block,]<-Results_full_h2_lia
     }
     Results_full_rg_array[,,block]<-Results_full_rg
@@ -152,7 +155,7 @@ Cal_rg_h2g_jk_alltraits <- function(n_block = 200, hmp3, phenotype, munged_sumst
     gcovarray = Results_full_gcov_array
   )
 
-  if (!is.null(sample_prev) && !is.null(population_prev)) {
+  if (has_prev) {
     output<-list(
       h2array = Results_full_h2_array,
       liah2array = Results_full_h2_lia_array,

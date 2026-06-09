@@ -48,6 +48,7 @@ Cal_rg_h2g_alltraits <- function(phenotype, munged_sumstats, ld_path, wld_path, 
   if (is.null(population_prev)) {
     population_prev<-NA
   }
+  has_prev <- !all(is.na(sample_prev)) && !all(is.na(population_prev))
 
   # read gwas .sumstat data
   GWAS_list <- lapply(munged_sumstats, function(df) {
@@ -56,6 +57,8 @@ Cal_rg_h2g_alltraits <- function(phenotype, munged_sumstats, ld_path, wld_path, 
 
   rg_res <- ldsc_rg(
     munged_sumstats = stats::setNames(GWAS_list, paste0("GWAS_", target_phenotypes)),
+    sample_prev = sample_prev,
+    population_prev = population_prev,
     ld = ld_path,
     wld = wld_path,
     n_blocks = 200,
@@ -104,7 +107,7 @@ Cal_rg_h2g_alltraits <- function(phenotype, munged_sumstats, ld_path, wld_path, 
     gcov = Results_full_gcov
   )
 
-  if (!is.null(sample_prev) && !is.null(population_prev)) {
+  if (has_prev) {
 
     Results_full_h2_lia<-matrix(0,nrow = 1,ncol = length(target_phenotypes))
     colnames(Results_full_h2_lia)<-target_phenotypes
@@ -123,5 +126,3 @@ Cal_rg_h2g_alltraits <- function(phenotype, munged_sumstats, ld_path, wld_path, 
   }
   return(output)
 }
-
-
